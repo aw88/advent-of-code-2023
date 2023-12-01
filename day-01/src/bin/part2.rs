@@ -9,43 +9,31 @@ fn to_lines(input: &str) -> Vec<&str> {
     input.split("\n").collect()
 }
 
-fn find_first_number(line: &str) -> &'static str {
-    let numbers = [
-        "one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7",
-        "eight", "8", "nine", "9",
-    ];
-
-    match *numbers.iter()
-        .map(|number| line.find(number).map(|idx| (idx, number)))
-        .flatten()
-        .min_by(|a, b| a.0.cmp(&b.0))
-        .unwrap()
-        .1 {
-        "one" => "1",
-        "two" => "2",
-        "three" => "3",
-        "four" => "4",
-        "five" => "5",
-        "six" => "6",
-        "seven" => "7",
-        "eight" => "8",
-        "nine" => "9",
-        s => s,        
-    }
+enum NumOrder {
+    First,
+    Last,
 }
 
-fn find_last_number(line: &str) -> &'static str {
+fn find_number(line: &str, order: NumOrder) -> &'static str {
     let numbers = [
         "one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7",
         "eight", "8", "nine", "9",
     ];
 
-    match *numbers.iter()
-        .map(|number| line.rfind(number).map(|idx| (idx, number)))
+    match *numbers
+        .iter()
+        .map(|number| match order {
+            NumOrder::First => line.find(number).map(|idx| (idx, number)),
+            NumOrder::Last => line.rfind(number).map(|idx| (idx, number)),
+        })
         .flatten()
-        .max_by(|a, b| a.0.cmp(&b.0))
+        .min_by(|a, b| match order {
+            NumOrder::First => a.0.cmp(&b.0),
+            NumOrder::Last => a.0.cmp(&b.0).reverse(),
+        })
         .unwrap()
-        .1 {
+        .1
+    {
         "one" => "1",
         "two" => "2",
         "three" => "3",
@@ -55,13 +43,13 @@ fn find_last_number(line: &str) -> &'static str {
         "seven" => "7",
         "eight" => "8",
         "nine" => "9",
-        s => s,        
+        s => s,
     }
 }
 
 fn make_numbers(line: &str) -> u32 {
-    let first = find_first_number(line);
-    let last = find_last_number(line);
+    let first = find_number(line, NumOrder::First);
+    let last = find_number(line, NumOrder::Last);
 
     let str_num = format!("{}{}", first, last);
 
@@ -71,10 +59,7 @@ fn make_numbers(line: &str) -> u32 {
 fn part2(input: &str) -> u32 {
     let lines = to_lines(input);
 
-    lines
-        .iter()
-        .map(|line| make_numbers(&line))
-        .sum::<u32>()
+    lines.iter().map(|line| make_numbers(&line)).sum::<u32>()
 }
 
 #[cfg(test)]
@@ -89,8 +74,13 @@ mod tests {
 
     #[test]
     fn test_find_first_number() {
-        assert_eq!(find_first_number("eightwo"), "8");
-        assert_eq!(find_first_number("eigh7yse7en"), "7");
+        assert_eq!(find_number("eightwo", NumOrder::First), "8");
+        assert_eq!(find_number("eigh7yse7en", NumOrder::First), "7");
+    }
+
+    #[test]
+    fn test_find_last_number() {
+        assert_eq!(find_number("eightwo", NumOrder::Last), "2");
     }
 
     #[test]
