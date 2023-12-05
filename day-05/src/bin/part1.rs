@@ -37,6 +37,18 @@ fn read_map(input: &str, map_name: &str) -> Vec<(usize, usize, usize)> {
         .collect()
 }
 
+macro_rules! pipeline {
+    ( $expr:expr => $($funs:tt)=>+ ) => {
+        {
+            let ret = $expr;
+            $(
+                let ret = lookup_map(&$funs, ret);
+            )*
+            ret
+        }
+    };
+}
+
 fn part1(input: &str) -> usize {
     let seeds = read_seeds(input);
 
@@ -51,14 +63,14 @@ fn part1(input: &str) -> usize {
     seeds
         .iter()
         .map(|seed| {
-            let intermediate = *seed;
-            let intermediate = lookup_map(&seed_to_soil, intermediate);
-            let intermediate = lookup_map(&soil_to_fertilizer, intermediate);
-            let intermediate = lookup_map(&fertilizer_to_water, intermediate);
-            let intermediate = lookup_map(&water_to_light, intermediate);
-            let intermediate = lookup_map(&light_to_temperature, intermediate);
-            let intermediate = lookup_map(&temperature_to_humidity, intermediate);
-            lookup_map(&humidity_to_location, intermediate)
+            pipeline!(*seed
+                => seed_to_soil
+                => soil_to_fertilizer
+                => fertilizer_to_water
+                => water_to_light
+                => light_to_temperature
+                => temperature_to_humidity
+                => humidity_to_location)
         })
         .min()
         .unwrap()
