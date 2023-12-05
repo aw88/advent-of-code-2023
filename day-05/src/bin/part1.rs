@@ -6,13 +6,10 @@ fn main() {
 }
 
 fn lookup_map(map: &Vec<(usize, usize, usize)>, value: usize) -> usize {
-    for (to, from, size) in map.iter() {
-        if value >= *from && value < (from + size) {
-            return to + (value - from);
-        }
-    }
-
-    value
+    map.iter()
+        .find(|(_, from, size)| value >= *from && value < (from + size))
+        .and_then(|(to, from, _)| Some(to + (value - from)))
+        .unwrap_or(value)
 }
 
 fn read_seeds(input: &str) -> Vec<usize> {
