@@ -35,7 +35,7 @@ impl FromStr for Game {
             number: parts[0].split(" ").last().unwrap().parse().unwrap(),
             rounds: parts[1]
                 .split("; ")
-                .map(|round| round.parse().unwrap())
+                .flat_map(|round| round.parse())
                 .collect(),
         })
     }
